@@ -109,6 +109,16 @@ pub async fn return_loan(pool: &PgPool, id: i64) -> Result<LoanReturn, AppError>
     Ok(LoanReturn::new(id, return_date, fine, days_late))
 }
 
+/// Histórico de empréstimos do membro, do mais recente para o mais antigo.
+pub async fn list_by_member(pool: &PgPool, member_id: i64) -> sqlx::Result<Vec<Loan>> {
+    sqlx::query_as(
+        "SELECT * FROM loans_with_status WHERE member_id = $1 ORDER BY loan_date DESC, id DESC",
+    )
+    .bind(member_id)
+    .fetch_all(pool)
+    .await
+}
+
 pub async fn overdue(pool: &PgPool) -> sqlx::Result<Vec<Loan>> {
     sqlx::query_as(
         "SELECT * FROM loans_with_status WHERE status = 'ATRASADO' ORDER BY due_date, id",
@@ -192,6 +202,22 @@ mod tests {
             return_loan(&pool, created.id + 1).await,
             Err(AppError::NotFound(_))
         ));
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures(path = "../../seeds", scripts("books", "members")))]
+    async fn historico_de_emprestimos(pool: PgPool) -> Result<(), AppError> {
+        let joao = member_id(&pool, "joao@email.com").await?;
+        let maria = member_id(&pool, "maria@email.com").await?;
+        assert!(list_by_member(&pool, joao).await?.is_empty());
+
+        create(&pool, &loan(joao, available_books(&pool).await?[0])).await?;
+
+        let history = list_by_member(&pool, joao).await?;
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].status, LoanStatus::Aberto);
+        assert_eq!(history[0].return_date, None);
+        assert!(list_by_member(&pool, maria).await?.is_empty());
         Ok(())
     }
 
