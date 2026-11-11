@@ -2,6 +2,7 @@ mod dto;
 mod handlers;
 pub(crate) mod model;
 pub(crate) mod repository;
+mod service;
 
 use axum::{
     Router,

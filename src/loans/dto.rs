@@ -5,8 +5,6 @@ use crate::{error::AppError, loans::model::LoanStatus};
 
 pub const DEFAULT_DAYS_TO_RETURN: i32 = 7;
 const MAX_DAYS_TO_RETURN: i32 = 365;
-/// Multa em reais por dia de atraso.
-pub const FINE_PER_DAY: f64 = 2.0;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,7 +39,7 @@ pub struct LoanReturn {
 }
 
 impl LoanReturn {
-    pub fn new(loan_id: i64, return_date: NaiveDate, fine: f64, days_late: i32) -> Self {
+    pub fn new(loan_id: i64, return_date: NaiveDate, fine: f64, days_late: i64) -> Self {
         let message = if days_late > 0 {
             format!("Devolução realizada com {days_late} dia(s) de atraso; multa de R$ {fine:.2}")
         } else {

@@ -31,10 +31,6 @@ pub struct Book {
 
 impl Book {
     /// Só um livro `DISPONIVEL` pode ser emprestado.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "passa a ser usado pelo serviço de empréstimos")
-    )]
     pub fn ensure_available(&self) -> Result<(), AppError> {
         if self.status == BookStatus::Disponivel {
             Ok(())

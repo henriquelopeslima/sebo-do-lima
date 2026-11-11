@@ -28,10 +28,6 @@ pub struct Member {
 
 impl Member {
     /// Só membro ativo e abaixo do limite de empréstimos em aberto pode emprestar.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "passa a ser usado pelo serviço de empréstimos")
-    )]
     pub fn ensure_can_borrow(&self, open_loans: i64) -> Result<(), AppError> {
         if self.status != MemberStatus::Ativo {
             return Err(AppError::Validation("Membro não está ativo".to_owned()));

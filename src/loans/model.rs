@@ -3,6 +3,20 @@
 use chrono::NaiveDate;
 use serde::Serialize;
 
+/// Multa em reais por dia de atraso.
+pub const FINE_PER_DAY: f64 = 2.0;
+
+/// Dias de atraso e multa de uma devolução; no prazo ou antecipada não há multa.
+pub fn fine_for(due_date: NaiveDate, return_date: NaiveDate) -> (i64, f64) {
+    let days_late = (return_date - due_date).num_days().max(0);
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "dias de atraso ficam muito abaixo de 2^53"
+    )]
+    let fine = days_late as f64 * FINE_PER_DAY;
+    (days_late, fine)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, sqlx::Type)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
@@ -34,6 +48,14 @@ pub struct Loan {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn multa_por_dia_de_atraso() {
+        let day = |d| NaiveDate::from_ymd_opt(2026, 11, d).unwrap();
+        assert_eq!(fine_for(day(10), day(10)), (0, 0.0));
+        assert_eq!(fine_for(day(10), day(8)), (0, 0.0));
+        assert_eq!(fine_for(day(10), day(13)), (3, 6.0));
+    }
 
     #[test]
     fn json_segue_o_contrato() {

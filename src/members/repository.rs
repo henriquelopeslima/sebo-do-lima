@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 
 use super::dto::{DEFAULT_LOAN_LIMIT, MemberCreate};
 use crate::members::model::Member;
@@ -29,6 +29,14 @@ pub async fn create(pool: &PgPool, input: &MemberCreate) -> sqlx::Result<Member>
     .bind(input.loan_limit.unwrap_or(DEFAULT_LOAN_LIMIT))
     .fetch_one(pool)
     .await
+}
+
+/// Bloqueia o membro até o fim da transação.
+pub async fn find_for_update(conn: &mut PgConnection, id: i64) -> sqlx::Result<Option<Member>> {
+    sqlx::query_as("SELECT * FROM members WHERE id = $1 FOR UPDATE")
+        .bind(id)
+        .fetch_optional(conn)
+        .await
 }
 
 #[cfg(test)]

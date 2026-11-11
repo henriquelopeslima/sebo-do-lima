@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgConnection, PgPool};
 
 use super::dto::{BookCreate, BookFilter, BookUpdate};
 use crate::books::model::Book;
@@ -76,6 +76,35 @@ pub async fn delete(pool: &PgPool, id: i64) -> sqlx::Result<bool> {
         .execute(pool)
         .await?;
     Ok(result.rows_affected() > 0)
+}
+
+/// Bloqueia o livro até o fim da transação.
+pub async fn find_for_update(conn: &mut PgConnection, id: i64) -> sqlx::Result<Option<Book>> {
+    sqlx::query_as("SELECT * FROM books WHERE id = $1 FOR UPDATE")
+        .bind(id)
+        .fetch_optional(conn)
+        .await
+}
+
+pub async fn mark_lent(conn: &mut PgConnection, id: i64) -> sqlx::Result<()> {
+    sqlx::query("UPDATE books SET status = 'EMPRESTADO', updated_at = now() WHERE id = $1")
+        .bind(id)
+        .execute(conn)
+        .await?;
+    Ok(())
+}
+
+/// Devolve o livro à estante. Só age se ele ainda consta como emprestado:
+/// não desfaz um PERDIDO/MANUTENCAO marcado durante o empréstimo.
+pub async fn release(conn: &mut PgConnection, id: i64) -> sqlx::Result<()> {
+    sqlx::query(
+        "UPDATE books SET status = 'DISPONIVEL', updated_at = now()
+         WHERE id = $1 AND status = 'EMPRESTADO'",
+    )
+    .bind(id)
+    .execute(conn)
+    .await?;
+    Ok(())
 }
 
 #[cfg(test)]
