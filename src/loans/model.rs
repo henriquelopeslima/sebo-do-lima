@@ -1,52 +1,7 @@
-// Espelham os schemas Book, Member e Loan de docs/contract-api.yml.
+//! Espelha o schema `Loan` de docs/contract-api.yml.
 
-use chrono::{DateTime, NaiveDate, Utc};
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, sqlx::Type)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum BookStatus {
-    Disponivel,
-    Emprestado,
-    Manutencao,
-    Perdido,
-}
-
-#[derive(Debug, Serialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
-pub struct Book {
-    pub id: i64,
-    pub title: String,
-    pub isbn: String,
-    pub author: String,
-    pub category: String,
-    pub status: BookStatus,
-    pub publish_year: Option<i32>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, sqlx::Type)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum MemberStatus {
-    Ativo,
-    Suspenso,
-    Inativo,
-}
-
-#[derive(Debug, Serialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
-pub struct Member {
-    pub id: i64,
-    pub name: String,
-    pub email: String,
-    pub phone: Option<String>,
-    pub status: MemberStatus,
-    pub loan_limit: i32,
-    pub registration_date: NaiveDate,
-}
+use chrono::NaiveDate;
+use serde::Serialize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, sqlx::Type)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -100,7 +55,5 @@ mod tests {
                 "returnDate": null, "status": "ABERTO", "fine": 0.0
             })
         );
-        assert_eq!(json!(BookStatus::Manutencao), json!("MANUTENCAO"));
-        assert_eq!(json!(MemberStatus::Suspenso), json!("SUSPENSO"));
     }
 }

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::{entities::BookStatus, error::AppError, validation::require_text};
+use crate::{books::model::BookStatus, error::AppError, validation::require_text};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

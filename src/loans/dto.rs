@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::{entities::LoanStatus, error::AppError};
+use crate::{error::AppError, loans::model::LoanStatus};
 
 pub const DEFAULT_DAYS_TO_RETURN: i32 = 7;
 const MAX_DAYS_TO_RETURN: i32 = 365;

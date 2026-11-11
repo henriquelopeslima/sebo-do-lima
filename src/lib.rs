@@ -13,7 +13,6 @@
 
 mod books;
 pub mod config;
-mod entities;
 mod error;
 mod loans;
 mod members;

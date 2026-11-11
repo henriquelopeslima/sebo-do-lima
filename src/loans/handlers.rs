@@ -9,7 +9,7 @@ use super::{
     dto::{LoanCreate, LoanReturn},
     repository,
 };
-use crate::{entities::Loan, error::AppError};
+use crate::{error::AppError, loans::model::Loan};
 
 pub async fn create(
     State(pool): State<PgPool>,

@@ -3,8 +3,7 @@ use sqlx::PgPool;
 
 use super::dto::{FINE_PER_DAY, LoanCreate, LoanReturn};
 use crate::{
-    entities::{BookStatus, Loan, MemberStatus},
-    error::AppError,
+    books::model::BookStatus, error::AppError, loans::model::Loan, members::model::MemberStatus,
 };
 
 fn invalid(message: &str) -> AppError {
@@ -121,7 +120,7 @@ pub async fn overdue(pool: &PgPool) -> sqlx::Result<Vec<Loan>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::LoanStatus;
+    use crate::loans::model::LoanStatus;
 
     async fn member_id(pool: &PgPool, email: &str) -> sqlx::Result<i64> {
         sqlx::query_scalar("SELECT id FROM members WHERE email = $1")

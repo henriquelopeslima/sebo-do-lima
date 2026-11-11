@@ -12,7 +12,7 @@ use super::{
     dto::{BookCreate, BookFilter, BookUpdate},
     repository,
 };
-use crate::{entities::Book, error::AppError};
+use crate::{books::model::Book, error::AppError};
 
 const NOT_FOUND: AppError = AppError::NotFound("Livro não encontrado");
 

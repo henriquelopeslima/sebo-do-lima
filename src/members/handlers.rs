@@ -6,10 +6,7 @@ use axum::{
 use sqlx::PgPool;
 
 use super::{dto::MemberCreate, repository};
-use crate::{
-    entities::{Loan, Member},
-    error::AppError,
-};
+use crate::{error::AppError, loans::model::Loan, members::model::Member};
 
 const NOT_FOUND: AppError = AppError::NotFound("Membro não encontrado");
 

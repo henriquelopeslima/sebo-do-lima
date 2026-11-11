@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use super::dto::{DEFAULT_LOAN_LIMIT, MemberCreate};
-use crate::entities::{Loan, Member};
+use crate::{loans::model::Loan, members::model::Member};
 
 pub async fn list(pool: &PgPool) -> sqlx::Result<Vec<Member>> {
     sqlx::query_as("SELECT * FROM members ORDER BY id")
@@ -44,7 +44,7 @@ pub async fn loans(pool: &PgPool, member_id: i64) -> sqlx::Result<Vec<Loan>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::{LoanStatus, MemberStatus};
+    use crate::{loans::model::LoanStatus, members::model::MemberStatus};
 
     fn new_member(email: &str) -> MemberCreate {
         MemberCreate {

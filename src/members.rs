@@ -1,5 +1,6 @@
 mod dto;
 mod handlers;
+pub(crate) mod model;
 mod repository;
 
 use axum::{Router, routing::get};

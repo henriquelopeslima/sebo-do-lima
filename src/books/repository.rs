@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use super::dto::{BookCreate, BookFilter, BookUpdate};
-use crate::entities::Book;
+use crate::books::model::Book;
 
 pub async fn list(pool: &PgPool, filter: &BookFilter) -> sqlx::Result<Vec<Book>> {
     // strpos em vez de ILIKE: '%' e '_' digitados na busca não viram curingas
@@ -81,7 +81,7 @@ pub async fn delete(pool: &PgPool, id: i64) -> sqlx::Result<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entities::BookStatus;
+    use crate::books::model::BookStatus;
 
     fn new_book(title: &str, author: &str, category: &str) -> BookCreate {
         BookCreate {
