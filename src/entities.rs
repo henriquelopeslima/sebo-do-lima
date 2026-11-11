@@ -1,5 +1,4 @@
 // Espelham os schemas Book, Member e Loan de docs/contract-api.yml.
-#![allow(dead_code)] // remover quando as rotas de membros e empréstimos usarem as entidades
 
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
@@ -28,15 +27,16 @@ pub struct Book {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, sqlx::Type)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MemberStatus {
     Ativo,
     Suspenso,
     Inativo,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Member {
     pub id: i64,
@@ -48,15 +48,16 @@ pub struct Member {
     pub registration_date: NaiveDate,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, sqlx::Type)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum LoanStatus {
     Aberto,
     Finalizado,
     Atrasado,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Loan {
     pub id: i64,

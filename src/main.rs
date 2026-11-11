@@ -1,6 +1,7 @@
 mod books;
 mod entities;
 mod error;
+mod members;
 mod validation;
 
 use axum::{Router, routing::get};
@@ -14,7 +15,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let api = Router::new()
         .route("/hello", get(async || "Hello, world!"))
-        .nest("/books", books::router());
+        .nest("/books", books::router())
+        .nest("/members", members::router());
     let app = Router::new().nest("/api", api).with_state(pool);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
