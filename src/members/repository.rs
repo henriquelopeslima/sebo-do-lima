@@ -33,10 +33,12 @@ pub async fn create(pool: &PgPool, input: &MemberCreate) -> sqlx::Result<Member>
 
 /// Histórico de empréstimos do membro, do mais recente para o mais antigo.
 pub async fn loans(pool: &PgPool, member_id: i64) -> sqlx::Result<Vec<Loan>> {
-    sqlx::query_as("SELECT * FROM loans WHERE member_id = $1 ORDER BY loan_date DESC, id DESC")
-        .bind(member_id)
-        .fetch_all(pool)
-        .await
+    sqlx::query_as(
+        "SELECT * FROM loans_with_status WHERE member_id = $1 ORDER BY loan_date DESC, id DESC",
+    )
+    .bind(member_id)
+    .fetch_all(pool)
+    .await
 }
 
 #[cfg(test)]
