@@ -1,6 +1,7 @@
 mod books;
 mod entities;
 mod error;
+mod validation;
 
 use axum::{Router, routing::get};
 use sqlx::PgPool;

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::{entities::BookStatus, error::AppError};
+use crate::{entities::BookStatus, error::AppError, validation::require_text};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,13 +52,6 @@ pub struct BookFilter {
     pub status: Option<BookStatus>,
     pub category: Option<String>,
     pub search: Option<String>,
-}
-
-fn require_text(field: &str, value: &str) -> Result<(), AppError> {
-    if value.trim().is_empty() {
-        return Err(AppError::Validation(format!("{field} não pode ser vazio")));
-    }
-    Ok(())
 }
 
 #[cfg(test)]
