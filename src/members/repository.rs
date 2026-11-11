@@ -93,7 +93,7 @@ mod tests {
 
         sqlx::query(
             "INSERT INTO loans (book_id, member_id, loan_date, due_date)
-             SELECT id, $1, '2026-11-12', '2026-11-19' FROM books ORDER BY id LIMIT 1",
+             SELECT id, $1, CURRENT_DATE, CURRENT_DATE + 7 FROM books ORDER BY id LIMIT 1",
         )
         .bind(member.id)
         .execute(&pool)
