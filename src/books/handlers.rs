@@ -56,9 +56,19 @@ pub async fn delete(
     State(pool): State<PgPool>,
     Path(id): Path<i64>,
 ) -> Result<StatusCode, AppError> {
-    if repository::delete(&pool, id).await? {
-        Ok(StatusCode::NO_CONTENT)
-    } else {
-        Err(NOT_FOUND)
+    match repository::delete(&pool, id).await {
+        Ok(true) => Ok(StatusCode::NO_CONTENT),
+        Ok(false) => Err(NOT_FOUND),
+        // o histórico de empréstimos referencia o livro; apagar o livro o destruiria
+        Err(error) if is_foreign_key_violation(&error) => {
+            Err(AppError::Conflict("Livro possui empréstimos registrados"))
+        }
+        Err(error) => Err(error.into()),
     }
+}
+
+fn is_foreign_key_violation(error: &sqlx::Error) -> bool {
+    error
+        .as_database_error()
+        .is_some_and(|error| error.is_foreign_key_violation())
 }

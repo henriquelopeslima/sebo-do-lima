@@ -10,6 +10,7 @@ use serde_json::json;
 pub enum AppError {
     NotFound(&'static str),
     Validation(String),
+    Conflict(&'static str),
     Database(sqlx::Error),
 }
 
@@ -18,6 +19,7 @@ impl IntoResponse for AppError {
         let (status, message) = match self {
             Self::NotFound(message) => (StatusCode::NOT_FOUND, message.to_owned()),
             Self::Validation(message) => (StatusCode::BAD_REQUEST, message),
+            Self::Conflict(message) => (StatusCode::CONFLICT, message.to_owned()),
             Self::Database(error) => {
                 // o detalhe fica só no log: mensagens do banco não devem vazar para o cliente
                 eprintln!("erro de banco de dados: {error}");
