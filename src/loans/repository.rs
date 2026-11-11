@@ -151,6 +151,20 @@ mod tests {
         }
     }
 
+    // garante que o seed continua válido quando o schema mudar
+    #[sqlx::test(fixtures(path = "../../seeds", scripts("books", "members", "loans")))]
+    async fn seed_de_emprestimos_e_valido(pool: PgPool) -> sqlx::Result<()> {
+        let (loans, lent_books): (i64, i64) = sqlx::query_as(
+            "SELECT (SELECT count(*) FROM loans),
+                    (SELECT count(*) FROM books WHERE status = 'EMPRESTADO')",
+        )
+        .fetch_one(&pool)
+        .await?;
+        assert_eq!((loans, lent_books), (4, 2));
+        assert_eq!(overdue(&pool).await?.len(), 1);
+        Ok(())
+    }
+
     #[sqlx::test(fixtures(path = "../../seeds", scripts("books", "members")))]
     async fn emprestimo_e_devolucao_em_dia(pool: PgPool) -> Result<(), AppError> {
         let joao = member_id(&pool, "joao@email.com").await?;
