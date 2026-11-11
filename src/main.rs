@@ -1,3 +1,5 @@
+mod entities;
+
 use axum::{Router, routing::get};
 
 #[tokio::main]
