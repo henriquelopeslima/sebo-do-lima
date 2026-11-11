@@ -68,6 +68,13 @@ mod tests {
         Ok(())
     }
 
+    // garante que o seed continua válido quando o schema mudar
+    #[sqlx::test(fixtures(path = "../../seeds", scripts("members")))]
+    async fn seed_de_membros_e_valido(pool: PgPool) -> sqlx::Result<()> {
+        assert_eq!(list(&pool).await?.len(), 5);
+        Ok(())
+    }
+
     #[sqlx::test]
     async fn email_duplicado_ignora_maiusculas(pool: PgPool) -> sqlx::Result<()> {
         create(&pool, &new_member("joao@email.com")).await?;

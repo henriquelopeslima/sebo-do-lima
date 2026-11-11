@@ -42,7 +42,7 @@ services:
         condition: service_healthy
     volumes:
       - ./seeds:/seeds:ro
-    command: psql postgres://sebo:sebo@db:5432/sebo -v ON_ERROR_STOP=1 -f /seeds/books.sql
+    command: psql postgres://sebo:sebo@db:5432/sebo -v ON_ERROR_STOP=1 -f /seeds/books.sql -f /seeds/members.sql
 
   docs:
     image: swaggerapi/swagger-ui:v5.34.1
