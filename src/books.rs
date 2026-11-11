@@ -2,6 +2,7 @@ mod dto;
 mod handlers;
 pub(crate) mod model;
 mod repository;
+mod service;
 
 use axum::{Router, routing::get};
 use sqlx::PgPool;
