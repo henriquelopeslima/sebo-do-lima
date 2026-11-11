@@ -1,0 +1,492 @@
+openapi: 3.0.3
+info:
+  title: Library API
+  description: API para gerenciamento de biblioteca - empréstimos de livros
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@library.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de desenvolvimento
+
+tags:
+  - name: Books
+    description: Operações com livros
+  - name: Members
+    description: Operações com membros
+  - name: Loans
+    description: Operações com empréstimos
+
+paths:
+  /books:
+    get:
+      tags:
+        - Books
+      summary: Lista todos os livros
+      description: Retorna lista de livros com filtros opcionais
+      parameters:
+        - name: status
+          in: query
+          description: Filtrar por status
+          schema:
+            type: string
+            enum: [DISPONIVEL, EMPRESTADO, MANUTENCAO, PERDIDO]
+        - name: category
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Buscar por título ou autor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de livros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+    
+    post:
+      tags:
+        - Books
+      summary: Cadastra novo livro
+      description: Apenas administradores podem cadastrar livros
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+      responses:
+        '201':
+          description: Livro criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autorizado
+
+  /books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Busca livro por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do livro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '404':
+          description: Livro não encontrado
+    
+    put:
+      tags:
+        - Books
+      summary: Atualiza livro
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdate'
+      responses:
+        '200':
+          description: Livro atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '404':
+          description: Livro não encontrado
+    
+    delete:
+      tags:
+        - Books
+      summary: Remove livro
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Livro removido
+        '404':
+          description: Livro não encontrado
+
+  /members:
+    get:
+      tags:
+        - Members
+      summary: Lista todos os membros
+      responses:
+        '200':
+          description: Lista de membros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+    
+    post:
+      tags:
+        - Members
+      summary: Cadastra novo membro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberCreate'
+      responses:
+        '201':
+          description: Membro criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          description: Dados inválidos
+
+  /members/{id}:
+    get:
+      tags:
+        - Members
+      summary: Busca membro por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do membro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '404':
+          description: Membro não encontrado
+
+  /members/{id}/loans:
+    get:
+      tags:
+        - Members
+      summary: Histórico de empréstimos do membro
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de empréstimos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+        '404':
+          description: Membro não encontrado
+
+  /loans:
+    post:
+      tags:
+        - Loans
+      summary: Realiza novo empréstimo
+      description: Cria empréstimo e atualiza status do livro
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+            example:
+              memberId: 101
+              bookId: 55
+              daysToReturn: 7
+      responses:
+        '201':
+          description: Empréstimo realizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        '400':
+          description: Erro de validação (livro indisponível, membro suspenso, etc)
+        '401':
+          description: Não autorizado
+
+  /loans/{id}/return:
+    post:
+      tags:
+        - Loans
+      summary: Realiza devolução
+      description: Finaliza empréstimo e calcula multa se houver atraso
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Devolução realizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  loanId:
+                    type: integer
+                  status:
+                    type: string
+                    example: FINALIZADO
+                  returnDate:
+                    type: string
+                    format: date
+                  fine:
+                    type: number
+                    format: double
+                    description: Valor da multa (0 se não houver atraso)
+                  message:
+                    type: string
+        '404':
+          description: Empréstimo não encontrado
+
+  /loans/overdue:
+    get:
+      tags:
+        - Loans
+      summary: Lista empréstimos atrasados
+      description: Retorna todos os empréstimos com status ATRASADO
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de empréstimos atrasados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 55
+        title:
+          type: string
+          example: "Dom Casmurro"
+        isbn:
+          type: string
+          example: "978-85-359-0277-8"
+        author:
+          type: string
+          example: "Machado de Assis"
+        category:
+          type: string
+          example: "Ficção"
+        status:
+          type: string
+          enum: [DISPONIVEL, EMPRESTADO, MANUTENCAO, PERDIDO]
+          example: DISPONIVEL
+        publishYear:
+          type: integer
+          example: 1899
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BookCreate:
+      type: object
+      required:
+        - title
+        - isbn
+        - author
+        - category
+      properties:
+        title:
+          type: string
+          example: "Dom Casmurro"
+        isbn:
+          type: string
+          example: "978-85-359-0277-8"
+        author:
+          type: string
+          example: "Machado de Assis"
+        category:
+          type: string
+          example: "Ficção"
+        publishYear:
+          type: integer
+          example: 1899
+
+    BookUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        isbn:
+          type: string
+        author:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum: [DISPONIVEL, EMPRESTADO, MANUTENCAO, PERDIDO]
+        publishYear:
+          type: integer
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        name:
+          type: string
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          example: "joao@email.com"
+        phone:
+          type: string
+          example: "(11) 99999-9999"
+        status:
+          type: string
+          enum: [ATIVO, SUSPENSO, INATIVO]
+          example: ATIVO
+        loanLimit:
+          type: integer
+          example: 3
+        registrationDate:
+          type: string
+          format: date
+
+    MemberCreate:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          example: "joao@email.com"
+        phone:
+          type: string
+          example: "(11) 99999-9999"
+        loanLimit:
+          type: integer
+          default: 3
+          example: 3
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 990
+        bookId:
+          type: integer
+          example: 55
+        memberId:
+          type: integer
+          example: 101
+        loanDate:
+          type: string
+          format: date
+          example: "2026-11-12"
+        dueDate:
+          type: string
+          format: date
+          example: "2026-11-19"
+        returnDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [ABERTO, FINALIZADO, ATRASADO]
+          example: ABERTO
+        fine:
+          type: number
+          format: double
+          description: Valor da multa (aplicado na devolução)
+
+    LoanCreate:
+      type: object
+      required:
+        - memberId
+        - bookId
+      properties:
+        memberId:
+          type: integer
+          example: 101
+        bookId:
+          type: integer
+          example: 55
+        daysToReturn:
+          type: integer
+          default: 7
+          example: 7
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT para autenticação
