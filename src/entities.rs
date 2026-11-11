@@ -59,6 +59,10 @@ pub enum LoanStatus {
 
 #[derive(Debug, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
+#[expect(
+    clippy::struct_field_names,
+    reason = "loanDate é o nome do campo no contrato"
+)]
 pub struct Loan {
     pub id: i64,
     pub book_id: i64,

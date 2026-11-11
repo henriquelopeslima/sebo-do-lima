@@ -26,7 +26,7 @@ pub async fn create(
     let member = repository::create(&pool, &input).await.map_err(|error| {
         let duplicate = error
             .as_database_error()
-            .is_some_and(|error| error.is_unique_violation());
+            .is_some_and(sqlx::error::DatabaseError::is_unique_violation);
         if duplicate {
             // o contrato só prevê 400 para o cadastro
             AppError::Validation("email já cadastrado".into())

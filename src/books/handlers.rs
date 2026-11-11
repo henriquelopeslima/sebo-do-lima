@@ -70,5 +70,5 @@ pub async fn delete(
 fn is_foreign_key_violation(error: &sqlx::Error) -> bool {
     error
         .as_database_error()
-        .is_some_and(|error| error.is_foreign_key_violation())
+        .is_some_and(sqlx::error::DatabaseError::is_foreign_key_violation)
 }
