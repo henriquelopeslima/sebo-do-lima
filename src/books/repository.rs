@@ -119,6 +119,13 @@ mod tests {
         Ok(())
     }
 
+    // garante que o seed continua válido quando o schema mudar
+    #[sqlx::test(fixtures(path = "../../seeds", scripts("books")))]
+    async fn seed_de_livros_e_valido(pool: PgPool) -> sqlx::Result<()> {
+        assert_eq!(list(&pool, &BookFilter::default()).await?.len(), 10);
+        Ok(())
+    }
+
     #[sqlx::test]
     async fn filtros_da_listagem(pool: PgPool) -> sqlx::Result<()> {
         let casmurro = create(

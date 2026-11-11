@@ -33,6 +33,17 @@ services:
       timeout: 2s
       retries: 15
 
+  # uso: docker compose run --rm seed (a API precisa ter subido antes, pois é ela que cria as tabelas)
+  seed:
+    image: postgres:18-alpine
+    profiles: [seed]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./seeds:/seeds:ro
+    command: psql postgres://sebo:sebo@db:5432/sebo -v ON_ERROR_STOP=1 -f /seeds/books.sql
+
   docs:
     image: swaggerapi/swagger-ui:v5.34.1
     ports:
