@@ -9,6 +9,9 @@ services:
       - .:/app
       - cargo-registry:/usr/local/cargo/registry
     command: cargo run
+    init: true # cargo como PID 1 ignora SIGTERM e o stop levaria 10s
+    ports:
+      - "127.0.0.1:3000:3000"
 
   docs:
     image: swaggerapi/swagger-ui:v5.34.1
