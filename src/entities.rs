@@ -1,11 +1,12 @@
 // Espelham os schemas Book, Member e Loan de docs/contract-api.yml.
-#![allow(dead_code)] // remover quando as rotas usarem as entidades
+#![allow(dead_code)] // remover quando as rotas de membros e empréstimos usarem as entidades
 
 use chrono::{DateTime, NaiveDate, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, sqlx::Type)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[sqlx(type_name = "text", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum BookStatus {
     Disponivel,
     Emprestado,
@@ -13,7 +14,7 @@ pub enum BookStatus {
     Perdido,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Book {
     pub id: i64,

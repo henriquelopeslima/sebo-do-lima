@@ -1,10 +1,22 @@
+mod books;
 mod entities;
+mod error;
 
 use axum::{Router, routing::get};
+use sqlx::PgPool;
 
 #[tokio::main]
-async fn main() {
-    let app = Router::new().route("/api/hello", get(async || "Hello, world!"));
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let database_url = std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL não definida")?;
+    let pool = PgPool::connect(&database_url).await?;
+    sqlx::migrate!().run(&pool).await?;
+
+    let api = Router::new()
+        .route("/hello", get(async || "Hello, world!"))
+        .nest("/books", books::router());
+    let app = Router::new().nest("/api", api).with_state(pool);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    axum::serve(listener, app).await?;
+    Ok(())
 }
