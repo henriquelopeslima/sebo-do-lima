@@ -1,7 +1,8 @@
 FROM rust:1-slim-trixie AS dev
 WORKDIR /app
 # o compose roda como o usuário do host; o cache do cargo precisa ser gravável por ele
-RUN mkdir -p /usr/local/cargo/registry && chmod -R a+rwX /usr/local/cargo
+RUN rustup component add rustfmt clippy \
+    && mkdir -p /usr/local/cargo/registry && chmod -R a+rwX /usr/local/cargo
 
 FROM dev AS build
 COPY . .
