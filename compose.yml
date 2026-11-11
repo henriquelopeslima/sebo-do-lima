@@ -9,9 +9,29 @@ services:
       - .:/app
       - cargo-registry:/usr/local/cargo/registry
     command: cargo run
+    environment:
+      DATABASE_URL: postgres://sebo:sebo@db:5432/sebo
+    depends_on:
+      db:
+        condition: service_healthy
     init: true # cargo como PID 1 ignora SIGTERM e o stop levaria 10s
     ports:
       - "127.0.0.1:3000:3000"
+
+  db:
+    image: postgres:18-alpine
+    # credenciais apenas de desenvolvimento; a porta não é publicada no host
+    environment:
+      POSTGRES_USER: sebo
+      POSTGRES_PASSWORD: sebo
+      POSTGRES_DB: sebo
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sebo -d sebo"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
 
   docs:
     image: swaggerapi/swagger-ui:v5.34.1
@@ -24,3 +44,4 @@ services:
 
 volumes:
   cargo-registry:
+  db-data:
