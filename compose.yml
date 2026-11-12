@@ -10,25 +10,26 @@ services:
       - cargo-registry:/usr/local/cargo/registry
     command: cargo run
     environment:
-      DATABASE_URL: postgres://sebo:sebo@db:5432/sebo
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgres://${POSTGRES_USER:-sebo}:${POSTGRES_PASSWORD:-sebo}@db:5432/${POSTGRES_DB:-sebo}
     depends_on:
       db:
         condition: service_healthy
     init: true # cargo como PID 1 ignora SIGTERM e o stop levaria 10s
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${PORT:-3000}:${PORT:-3000}"
 
   db:
     image: postgres:18-alpine
     # credenciais apenas de desenvolvimento; a porta não é publicada no host
     environment:
-      POSTGRES_USER: sebo
-      POSTGRES_PASSWORD: sebo
-      POSTGRES_DB: sebo
+      POSTGRES_USER: ${POSTGRES_USER:-sebo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sebo}
+      POSTGRES_DB: ${POSTGRES_DB:-sebo}
     volumes:
       - db-data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sebo -d sebo"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 2s
       timeout: 2s
       retries: 15
@@ -42,7 +43,7 @@ services:
         condition: service_healthy
     volumes:
       - ./seeds:/seeds:ro
-    command: psql postgres://sebo:sebo@db:5432/sebo -v ON_ERROR_STOP=1 -f /seeds/books.sql -f /seeds/members.sql -f /seeds/loans.sql
+    command: psql postgres://${POSTGRES_USER:-sebo}:${POSTGRES_PASSWORD:-sebo}@db:5432/${POSTGRES_DB:-sebo} -v ON_ERROR_STOP=1 -f /seeds/books.sql -f /seeds/members.sql -f /seeds/loans.sql
 
   docs:
     image: swaggerapi/swagger-ui:v5.34.1

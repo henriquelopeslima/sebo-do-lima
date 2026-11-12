@@ -15,12 +15,13 @@ API REST de gestão de biblioteca/sebo: catálogo de livros, cadastro de membros
 ## Executando
 
 ```sh
+# opcional: cp .env.example .env (porta, credenciais do banco, UID/GID)
 docker compose up                 # API em http://127.0.0.1:3000 (cria as tabelas)
 docker compose run --rm seed      # dados de exemplo (com a API já no ar)
 docker compose up docs            # Swagger UI em http://127.0.0.1:8080
 ```
 
-Sem Docker: defina `DATABASE_URL` (obrigatória) e `PORT` (opcional, padrão `3000`) e rode `cargo run`.
+Sem Docker: defina `DATABASE_URL` (obrigatória) e `PORT` (opcional, padrão `3000`), como no `.env.example`, e rode `cargo run`.
 
 Testes (precisam de um Postgres acessível via `DATABASE_URL`, pois usam `#[sqlx::test]`):
 
