@@ -22,7 +22,7 @@ impl IntoResponse for AppError {
             Self::Conflict(message) => (StatusCode::CONFLICT, message.to_owned()),
             Self::Database(error) => {
                 // o detalhe fica só no log: mensagens do banco não devem vazar para o cliente
-                eprintln!("erro de banco de dados: {error}");
+                tracing::error!(%error, "erro de banco de dados");
                 (StatusCode::INTERNAL_SERVER_ERROR, "Erro interno".to_owned())
             }
         };

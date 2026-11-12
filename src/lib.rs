@@ -21,6 +21,7 @@ mod validation;
 use axum::{Router, routing::get};
 use sqlx::PgPool;
 use tokio::signal::unix::{SignalKind, signal};
+use tower_http::trace::TraceLayer;
 
 use config::Config;
 
@@ -31,7 +32,10 @@ pub fn app(pool: PgPool) -> Router {
         .nest("/books", books::router())
         .nest("/members", members::router())
         .nest("/loans", loans::router());
-    Router::new().nest("/api", api).with_state(pool)
+    Router::new()
+        .nest("/api", api)
+        .layer(TraceLayer::new_for_http())
+        .with_state(pool)
 }
 
 /// Conecta ao banco, aplica as migrations e serve a API até receber SIGTERM ou Ctrl-C.
@@ -44,6 +48,7 @@ pub async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     sqlx::migrate!().run(&pool).await?;
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", config.port)).await?;
+    tracing::info!(port = config.port, "servidor iniciado");
     let mut terminate = signal(SignalKind::terminate())?;
     axum::serve(listener, app(pool))
         .with_graceful_shutdown(async move {
