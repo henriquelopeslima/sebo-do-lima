@@ -59,6 +59,12 @@ cargo llvm-cov --fail-under-lines 95
 
 Contrato completo (OpenAPI): [`docs/contract-api.yml`](docs/contract-api.yml).
 
+## Observabilidade
+
+- **Logs:** JSON em stdout (`tracing`), uma linha por requisição e uma por erro de banco. Nível via `RUST_LOG` (padrão `info`).
+- **Métricas:** `GET /metrics` (Prometheus) com `http_requests_total` e `http_request_duration_seconds`, rotuladas por método, rota e status.
+- **SLO:** disponibilidade de 99,5% em 30 dias, em [`docs/slo.md`](docs/slo.md).
+
 ## Estrutura
 
 ```
