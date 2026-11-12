@@ -16,9 +16,10 @@ pub mod config;
 mod error;
 mod loans;
 mod members;
+pub mod metrics;
 mod validation;
 
-use axum::{Router, routing::get};
+use axum::{Router, middleware, routing::get};
 use sqlx::PgPool;
 use tokio::signal::unix::{SignalKind, signal};
 use tower_http::trace::TraceLayer;
@@ -34,6 +35,8 @@ pub fn app(pool: PgPool) -> Router {
         .nest("/loans", loans::router());
     Router::new()
         .nest("/api", api)
+        .route("/metrics", get(metrics::render))
+        .layer(middleware::from_fn(metrics::track))
         .layer(TraceLayer::new_for_http())
         .with_state(pool)
 }
@@ -44,6 +47,7 @@ pub fn app(pool: PgPool) -> Router {
 ///
 /// Falha se o banco está inacessível, uma migration não aplica ou a porta não pode ser aberta.
 pub async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    metrics::install();
     let pool = PgPool::connect(&config.database_url).await?;
     sqlx::migrate!().run(&pool).await?;
 

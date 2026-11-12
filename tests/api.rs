@@ -47,6 +47,21 @@ async fn hello(pool: PgPool) {
     assert_eq!(body, json!("Hello, world!"));
 }
 
+#[sqlx::test]
+async fn metricas_contam_requisicoes_por_rota(pool: PgPool) {
+    sebo_do_lima::metrics::install();
+    request(&pool, Method::GET, "/api/books/1", None).await;
+
+    let (status, body) = request(&pool, Method::GET, "/metrics", None).await;
+    assert_eq!(status, StatusCode::OK);
+    let body = body.as_str().unwrap();
+    // a rota entra como padrão (`{id}`), não com o id, para não explodir a cardinalidade
+    assert!(
+        body.contains(r#"http_requests_total{method="GET",route="/api/books/{id}",status="404"}"#)
+    );
+    assert!(body.contains("http_request_duration_seconds"));
+}
+
 async fn get(pool: &PgPool, uri: &str) -> (StatusCode, Value) {
     request(pool, Method::GET, uri, None).await
 }
